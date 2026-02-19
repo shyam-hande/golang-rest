@@ -4,7 +4,6 @@ site_author: shyamhande
 repo_url: https://github.com/shyam-hande/golang-rest/tree/main
 repo_name: shyam-hande/golang-rest
 
-docs_dir: docs/techdocs
 
 nav:
   - Home: index.md
