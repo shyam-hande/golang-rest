@@ -1,11 +1,13 @@
 package routes
 
 import (
+	"errors"
 	"net/http"
 	"rest-api/models"
 	"rest-api/utils"
 
 	"github.com/gin-gonic/gin"
+	"github.com/mattn/go-sqlite3"
 )
 
 func singup(context *gin.Context) {
@@ -21,7 +23,12 @@ func singup(context *gin.Context) {
 	err = user.Save()
 
 	if err != nil {
-		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not parse request body", "Error": err})
+		var sqliteErr sqlite3.Error
+		if errors.As(err, &sqliteErr) && sqliteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
+			context.JSON(http.StatusConflict, gin.H{"message": "Email already registered"})
+			return
+		}
+		context.JSON(http.StatusInternalServerError, gin.H{"message": "Could not create user", "Error": err})
 		return
 	}
 
