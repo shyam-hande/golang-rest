@@ -12,7 +12,7 @@ metadata:
     login, and full CRUD operations on events.
   annotations:
     # Update the URL below to match your actual source control host
-    backstage.io/source-location: url:https://github.com/shyamhande/golang
+    backstage.io/source-location: url:https://github.com/shyam-hande/golang-rest/tree/main/
     backstage.io/techdocs-ref: url:https://github.com/shyam-hande/golang-rest/tree/main/
     # Local Swagger UI — accessible at http://localhost:8080/swagger when the app is running
     backstage.io/api-docs-url: http://localhost:8080/swagger
