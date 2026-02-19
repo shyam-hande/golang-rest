@@ -1,0 +1,427 @@
+openapi: 3.0.3
+info:
+  title: Go Events REST API
+  description: |
+    A RESTful API for managing events. 
+    Users can sign up, log in, and authenticated users can create, update, and delete events.
+    All authenticated endpoints require a **Bearer JWT** token obtained from the `/login` endpoint.
+  version: 1.0.0
+  contact:
+    name: API Support
+
+servers:
+  - url: http://localhost:8080
+    description: Local development server
+
+tags:
+  - name: Auth
+    description: User registration and authentication
+  - name: Events
+    description: Event management
+
+paths:
+  /signup:
+    post:
+      tags:
+        - Auth
+      summary: Register a new user
+      description: Creates a new user account with an email and password.
+      operationId: signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+            example:
+              email: "user@example.com"
+              password: "secret123"
+      responses:
+        '201':
+          description: User created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "user created"
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /login:
+    post:
+      tags:
+        - Auth
+      summary: Login and obtain a JWT token
+      description: Authenticates a user with email and password, returns a JWT bearer token.
+      operationId: login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserCredentials'
+            example:
+              email: "user@example.com"
+              password: "secret123"
+      responses:
+        '200':
+          description: Login successful — includes JWT token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+              example:
+                message: "Login successful"
+                token: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Invalid credentials
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events:
+    get:
+      tags:
+        - Events
+      summary: List all events
+      description: Returns an array of all events. No authentication required.
+      operationId: getEvents
+      responses:
+        '200':
+          description: A list of events
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Event'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    post:
+      tags:
+        - Events
+      summary: Create a new event
+      description: Creates a new event. Requires a valid JWT bearer token.
+      operationId: createEvent
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+            example:
+              name: "Go Conference 2025"
+              description: "Annual Go programming conference"
+              location: "San Francisco, CA"
+              dateTime: "2025-09-15T09:00:00Z"
+      responses:
+        '201':
+          description: Event created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  Event:
+                    $ref: '#/components/schemas/Event'
+              example:
+                message: "Created event successfully"
+                Event:
+                  id: 1
+                  name: "Go Conference 2025"
+                  description: "Annual Go programming conference"
+                  location: "San Francisco, CA"
+                  dateTime: "2025-09-15T09:00:00Z"
+                  userId: 42
+        '400':
+          description: Invalid request body
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized — missing or invalid token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /events/{id}:
+    get:
+      tags:
+        - Events
+      summary: Get an event by ID
+      description: Returns a single event by its ID. No authentication required.
+      operationId: getEventById
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: The requested event
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Event'
+        '400':
+          description: Invalid event ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Event not found or internal error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    put:
+      tags:
+        - Events
+      summary: Update an event
+      description: Updates an existing event. Requires authentication and ownership of the event.
+      operationId: updateEvent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventInput'
+            example:
+              name: "Go Conference 2025 (Updated)"
+              description: "Updated description"
+              location: "New York, NY"
+              dateTime: "2025-10-01T10:00:00Z"
+      responses:
+        '200':
+          description: Event updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "event updated"
+        '400':
+          description: Invalid request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized — not the event owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Events
+      summary: Delete an event
+      description: Deletes an existing event. Requires authentication and ownership of the event.
+      operationId: deleteEvent
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/EventId'
+      responses:
+        '200':
+          description: Event deleted successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+              example:
+                message: "event deleted"
+        '400':
+          description: Invalid event ID format
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized — not the event owner
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        JWT token obtained from the `/login` endpoint.
+        Pass it as: `Authorization: Bearer <token>`
+
+  parameters:
+    EventId:
+      name: id
+      in: path
+      required: true
+      description: Numeric ID of the event
+      schema:
+        type: integer
+        format: int64
+        example: 1
+
+  schemas:
+    Event:
+      type: object
+      properties:
+        ID:
+          type: integer
+          format: int64
+          description: Unique event identifier
+          example: 1
+        Name:
+          type: string
+          description: Name of the event
+          example: "Go Conference 2025"
+        Description:
+          type: string
+          description: Detailed description of the event
+          example: "Annual Go programming conference"
+        Location:
+          type: string
+          description: Physical or virtual location
+          example: "San Francisco, CA"
+        DateTime:
+          type: string
+          format: date-time
+          description: Event date and time (ISO 8601)
+          example: "2025-09-15T09:00:00Z"
+        UserID:
+          type: integer
+          format: int64
+          description: ID of the user who created the event
+          example: 42
+
+    EventInput:
+      type: object
+      required:
+        - name
+        - description
+        - location
+        - dateTime
+      properties:
+        name:
+          type: string
+          description: Name of the event
+          example: "Go Conference 2025"
+        description:
+          type: string
+          description: Detailed description of the event
+          example: "Annual Go programming conference"
+        location:
+          type: string
+          description: Physical or virtual location
+          example: "San Francisco, CA"
+        dateTime:
+          type: string
+          format: date-time
+          description: Event date and time (ISO 8601)
+          example: "2025-09-15T09:00:00Z"
+
+    UserCredentials:
+      type: object
+      required:
+        - email
+        - password
+      properties:
+        email:
+          type: string
+          format: email
+          description: User email address
+          example: "user@example.com"
+        password:
+          type: string
+          format: password
+          description: User password
+          example: "secret123"
+
+    LoginResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Login successful"
+        token:
+          type: string
+          description: JWT bearer token to use in subsequent authenticated requests
+          example: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+
+    MessageResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          example: "Operation successful"
+
+    ErrorResponse:
+      type: object
+      properties:
+        message:
+          type: string
+          description: Human-readable error message
+          example: "Something went wrong"
+        Error:
+          description: The underlying error detail (may be a string or object)
+          example: "record not found"

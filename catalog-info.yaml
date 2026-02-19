@@ -1,0 +1,54 @@
+# -----------------------------------------------------------------------
+# Entity 1: Component — the Go REST API service itself
+# -----------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: Component
+metadata:
+  name: golang-rest-api
+  title: Go Events REST API
+  description: >
+    A RESTful API for managing events, built with Go (Gin framework),
+    JWT authentication, and SQLite. Exposes endpoints for user signup,
+    login, and full CRUD operations on events.
+  annotations:
+    # Update the URL below to match your actual source control host
+    backstage.io/source-location: url:https://github.com/shyamhande/golang
+    backstage.io/techdocs-ref: dir:.
+    # Local Swagger UI — accessible at http://localhost:8080/swagger when the app is running
+    backstage.io/api-docs-url: http://localhost:8080/swagger
+  tags:
+    - go
+    - gin
+    - rest-api
+    - sqlite
+    - jwt
+spec:
+  type: service
+  lifecycle: production
+  owner: user:shyamhande
+  providesApis:
+    - golang-rest-api-openapi
+
+---
+# -----------------------------------------------------------------------
+# Entity 2: API — the OpenAPI spec for the service
+# -----------------------------------------------------------------------
+apiVersion: backstage.io/v1alpha1
+kind: API
+metadata:
+  name: golang-rest-api-openapi
+  title: Go Events REST API – OpenAPI Spec
+  description: >
+    OpenAPI 3.0 specification for the Go Events REST API.
+    Documents all endpoints including user authentication (signup/login)
+    and event CRUD operations (with JWT bearer auth for writes).
+  tags:
+    - go
+    - openapi
+    - events
+spec:
+  type: openapi
+  lifecycle: production
+  owner: user:shyamhande
+  definition:
+    $text: https://raw.githubusercontent.com/shyamhande/golang/main/docs/swagger.yaml

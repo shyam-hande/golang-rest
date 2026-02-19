@@ -1,6 +1,7 @@
 package routes
 
 import (
+	"log/slog"
 	"net/http"
 	"rest-api/models"
 	"strconv"
@@ -9,6 +10,7 @@ import (
 )
 
 func getEvents(context *gin.Context) {
+	slog.Info("Fetching all events")
 	events, err := models.GetAllEvents()
 	if err != nil {
 		context.JSON(http.StatusInternalServerError, gin.H{"message": "Something went wrong", "Error": err})
@@ -19,6 +21,7 @@ func getEvents(context *gin.Context) {
 
 func getEventById(context *gin.Context) {
 	eventId, err := strconv.ParseInt(context.Param("id"), 10, 64)
+	slog.Info("Fetching event", slog.Int64("id", eventId))
 	if err != nil {
 		context.JSON(http.StatusBadRequest, gin.H{"message": "Something went wrong", "Error": err})
 		return
