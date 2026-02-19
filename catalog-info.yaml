@@ -51,4 +51,4 @@ spec:
   lifecycle: production
   owner: user:shyamhande
   definition:
-    $text: https://raw.githubusercontent.com/shyamhande/golang/main/docs/swagger.yaml
+    $text: https://github.com/shyam-hande/golang-rest/blob/main/docs/swagger.yaml
